@@ -22,19 +22,21 @@ async def consultar_e_extrair_cpf(placa, ait):
         await page.wait_for_timeout(5000)
 
         try:
-            async with page.expect_download(timeout=20000) as download_info:
-                await page.get_by_role("button", name="").click()
+    async with page.expect_download(timeout=20000) as download_info:
+        botao_download = page.locator("button:has-text('Visualizar')")
+        await botao_download.first.click()
 
-            download = await download_info.value
-            nome_pdf = f"{placa}_{ait}.pdf"
-            caminho_pdf = os.path.join("app", "static", nome_pdf)
-            await download.save_as(caminho_pdf)
-            cpf = extrair_cpf_pdf(caminho_pdf)
-            return cpf
+    download = await download_info.value
+    nome_pdf = f"{placa}_{ait}.pdf"
+    caminho_pdf = os.path.join("app", "static", nome_pdf)
+    await download.save_as(caminho_pdf)
 
-        except Exception as e:
-            print(f"⚠️ Erro ao baixar PDF para {placa}/{ait}: {e}")
-            return "PDF não encontrado"
+    cpf = extrair_cpf_pdf(caminho_pdf)
+    return cpf
+
+except Exception as e:
+    print(f"⚠️ Erro ao baixar PDF para {placa}/{ait}: {e}")
+    return "PDF não encontrado"
 
 def extrair_cpf_pdf(caminho):
     try:
