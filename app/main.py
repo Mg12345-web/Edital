@@ -9,6 +9,7 @@ from fastapi.requests import Request
 from fastapi.responses import HTMLResponse
 
 app = FastAPI()
+templates = Jinja2Templates(directory="templates")
 
 # Libera requisições externas (pode deixar assim no Railway)
 app.add_middleware(
@@ -41,3 +42,7 @@ async def baixar(nome_arquivo: str):
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         filename=nome_arquivo
     )
+
+@app.get("/", response_class=HTMLResponse)
+async def home(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
