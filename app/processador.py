@@ -12,15 +12,15 @@ async def consultar_e_extrair_cpf(placa, ait):
         context = await browser.new_context(accept_downloads=True)
         page = await context.new_page()
 
-        await page.goto("https://portal.der.mg.gov.br/obras-multas-frontend/#/consulta-autos")
-        await page.wait_for_timeout(2000)
-
-        await page.locator('input[name="placa"]').fill(placa)
-        await page.locator('input[name="nrAuto"]').fill(ait)
-        await page.get_by_role("button", name="Consultar").click()
-        await page.wait_for_timeout(5000)
-
         try:
+            await page.goto("https://portal.der.mg.gov.br/obras-multas-frontend/#/consulta-autos")
+            await page.wait_for_timeout(2000)
+
+            await page.locator('input[name="placa"]').fill(placa)
+            await page.locator('input[name="nrAuto"]').fill(ait)
+            await page.get_by_role("button", name="Consultar").click()
+            await page.wait_for_timeout(5000)
+
             # Verifica se existe botão "Visualizar"
             botoes = page.locator("button:has-text('Visualizar')")
             if await botoes.count() == 0:
@@ -42,6 +42,10 @@ async def consultar_e_extrair_cpf(placa, ait):
             print(f"⚠️ Erro ao baixar PDF para {placa}/{ait}: {e}")
             return "PDF não encontrado"
 
+        finally:
+            await context.close()
+            await browser.close()
+
 def extrair_cpf_pdf(caminho):
     try:
         with fitz.open(caminho) as doc:
@@ -52,13 +56,13 @@ def extrair_cpf_pdf(caminho):
                     if len(n) <= 11:
                         return formatar_cpf(n)
     except Exception as e:
-        print("Erro ao ler PDF:", e)
+        print(f"Erro ao ler PDF ({caminho}):", e)
     return "CPF não encontrado"
 
 async def processar_planilha(caminho_planilha):
     df = pd.read_excel(caminho_planilha)
 
-    # Permitir nomes flexíveis das colunas (caso mudem para 'Placa', 'AIT', etc.)
+    # Permitir nomes flexíveis das colunas
     col_placa = next((c for c in df.columns if 'placa' in c.lower()), None)
     col_ait = next((c for c in df.columns if 'ait' in c.lower()), None)
 
