@@ -5,7 +5,7 @@ import os
 import re
 import fitz  # pymupdf
 from playwright.async_api import async_playwright
-from utils import formatar_cpf
+from app.utils import formatar_cpf
 
 async def consultar_e_extrair_cpf(placa, ait):
     async with async_playwright() as p:
