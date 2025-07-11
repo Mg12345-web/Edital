@@ -3,9 +3,10 @@ import pandas as pd
 import asyncio
 import os
 import re
-import fitz  # pymupdf
+import fitz  # PyMuPDF
 from playwright.async_api import async_playwright
 from app.utils import formatar_cpf
+
 
 async def consultar_e_extrair_cpf(placa, ait):
     async with async_playwright() as p:
@@ -30,8 +31,10 @@ async def consultar_e_extrair_cpf(placa, ait):
             await download.save_as(caminho_pdf)
             cpf = extrair_cpf_pdf(caminho_pdf)
             return cpf
-        except:
+        except Exception as e:
+            print(f"⚠️ Erro ao baixar PDF para {placa}/{ait}: {e}")
             return "PDF não encontrado"
+
 
 def extrair_cpf_pdf(caminho):
     try:
@@ -43,16 +46,38 @@ def extrair_cpf_pdf(caminho):
                     if len(n) <= 11:
                         return formatar_cpf(n)
     except Exception as e:
-        print("Erro ao ler PDF:", e)
+        print("⚠️ Erro ao ler PDF:", e)
     return "CPF não encontrado"
+
 
 async def processar_planilha(caminho_planilha):
     df = pd.read_excel(caminho_planilha)
+
+    # Flexibiliza nomes de colunas
+    colunas = [c.strip().lower() for c in df.columns]
+    mapa_colunas = {
+        'placa': ['placa', 'placa do veículo', 'nº da placa', 'placa veiculo'],
+        'ait': ['ait', 'auto', 'auto de infração', 'nº do auto']
+    }
+
+    def encontrar_coluna(possibilidades):
+        for nome in possibilidades:
+            for col in colunas:
+                if nome in col:
+                    return df.columns[colunas.index(col)]
+        return None
+
+    col_placa = encontrar_coluna(mapa_colunas['placa'])
+    col_ait = encontrar_coluna(mapa_colunas['ait'])
+
+    if not col_placa or not col_ait:
+        raise Exception("❌ Não foi possível identificar as colunas de PLACA e/ou AIT.")
+
     resultados = []
 
-    for index, row in df.iterrows():
-        placa = str(row['placa']).strip()
-        ait = str(row['ait']).strip()
+    for _, row in df.iterrows():
+        placa = str(row[col_placa]).strip()
+        ait = str(row[col_ait]).strip()
         print(f"🔍 Processando: {placa} / {ait}")
         cpf = await consultar_e_extrair_cpf(placa, ait)
         resultados.append({
