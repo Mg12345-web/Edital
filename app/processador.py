@@ -3,10 +3,9 @@ import pandas as pd
 import asyncio
 import os
 import re
-import fitz  # PyMuPDF
+import fitz  # pymupdf
 from playwright.async_api import async_playwright
 from app.utils import formatar_cpf
-
 
 async def consultar_e_extrair_cpf(placa, ait):
     async with async_playwright() as p:
@@ -24,17 +23,18 @@ async def consultar_e_extrair_cpf(placa, ait):
 
         try:
             async with page.expect_download(timeout=20000) as download_info:
-            await page.get_by_role("button", name="").click()
+                await page.get_by_role("button", name="").click()
+
             download = await download_info.value
             nome_pdf = f"{placa}_{ait}.pdf"
             caminho_pdf = os.path.join("app", "static", nome_pdf)
             await download.save_as(caminho_pdf)
             cpf = extrair_cpf_pdf(caminho_pdf)
             return cpf
+
         except Exception as e:
             print(f"⚠️ Erro ao baixar PDF para {placa}/{ait}: {e}")
             return "PDF não encontrado"
-
 
 def extrair_cpf_pdf(caminho):
     try:
@@ -46,36 +46,22 @@ def extrair_cpf_pdf(caminho):
                     if len(n) <= 11:
                         return formatar_cpf(n)
     except Exception as e:
-        print("⚠️ Erro ao ler PDF:", e)
+        print("Erro ao ler PDF:", e)
     return "CPF não encontrado"
-
 
 async def processar_planilha(caminho_planilha):
     df = pd.read_excel(caminho_planilha)
 
-    # Flexibiliza nomes de colunas
-    colunas = [c.strip().lower() for c in df.columns]
-    mapa_colunas = {
-        'placa': ['placa', 'placa do veículo', 'nº da placa', 'placa veiculo'],
-        'ait': ['ait', 'auto', 'auto de infração', 'nº do auto']
-    }
-
-    def encontrar_coluna(possibilidades):
-        for nome in possibilidades:
-            for col in colunas:
-                if nome in col:
-                    return df.columns[colunas.index(col)]
-        return None
-
-    col_placa = encontrar_coluna(mapa_colunas['placa'])
-    col_ait = encontrar_coluna(mapa_colunas['ait'])
+    # Permitir nomes flexíveis das colunas (caso mudem para 'Placa', 'AIT', etc.)
+    col_placa = next((c for c in df.columns if 'placa' in c.lower()), None)
+    col_ait = next((c for c in df.columns if 'ait' in c.lower()), None)
 
     if not col_placa or not col_ait:
-        raise Exception("❌ Não foi possível identificar as colunas de PLACA e/ou AIT.")
+        raise ValueError("A planilha deve conter colunas com 'placa' e 'ait' no nome.")
 
     resultados = []
 
-    for _, row in df.iterrows():
+    for index, row in df.iterrows():
         placa = str(row[col_placa]).strip()
         ait = str(row[col_ait]).strip()
         print(f"🔍 Processando: {placa} / {ait}")
