@@ -22,9 +22,9 @@ async def consultar_e_extrair_cpf(placa, ait):
         await page.wait_for_timeout(5000)
 
         try:
-    async with page.expect_download(timeout=20000) as download_info:
-        botao_download = page.locator("button:has-text('Visualizar')")
-        await botao_download.first.click()
+            async with page.expect_download(timeout=20000) as download_info:
+                botao_download = page.locator("button:has-text('Visualizar')")
+                await botao_download.first.click()
 
     download = await download_info.value
     nome_pdf = f"{placa}_{ait}.pdf"
