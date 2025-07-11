@@ -6,3 +6,4 @@ playwright
 pymupdf
 aiofiles
 python-multipart
+jinja2
