@@ -2,8 +2,8 @@ import pandas as pd
 import asyncio
 import os
 import re
-import fitz  # pymupdf
-from playwright.async_api import async_playwright
+import fitz  # PyMuPDF
+from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
 from app.utils import formatar_cpf
 
 async def consultar_e_extrair_cpf(placa, ait):
@@ -21,12 +21,11 @@ async def consultar_e_extrair_cpf(placa, ait):
             await page.get_by_role("button", name="Consultar").click()
             await page.wait_for_timeout(5000)
 
-            # Verifica se existe botão "Visualizar"
-            botoes = page.locator("button:has-text('Visualizar')")
+            # Seleciona o botão PDF pelo seletor alternativo (ícone sem texto)
+            botoes = page.locator("button >> nth=0")  # Ajuste se houver múltiplos
             if await botoes.count() == 0:
-                raise Exception("Botão 'Visualizar' não encontrado")
+                raise Exception("Botão de PDF não encontrado")
 
-            # Espera o download
             async with page.expect_download(timeout=20000) as download_info:
                 await botoes.first.click()
 
@@ -38,10 +37,12 @@ async def consultar_e_extrair_cpf(placa, ait):
             cpf = extrair_cpf_pdf(caminho_pdf)
             return cpf
 
+        except PlaywrightTimeoutError:
+            print(f"⚠️ Timeout ao tentar baixar PDF para {placa}/{ait}")
+            return "PDF não encontrado"
         except Exception as e:
             print(f"⚠️ Erro ao baixar PDF para {placa}/{ait}: {e}")
             return "PDF não encontrado"
-
         finally:
             await context.close()
             await browser.close()
@@ -56,13 +57,13 @@ def extrair_cpf_pdf(caminho):
                     if len(n) <= 11:
                         return formatar_cpf(n)
     except Exception as e:
-        print(f"Erro ao ler PDF ({caminho}):", e)
+        print(f"❌ Erro ao ler PDF ({caminho}): {e}")
     return "CPF não encontrado"
 
 async def processar_planilha(caminho_planilha):
     df = pd.read_excel(caminho_planilha)
 
-    # Permitir nomes flexíveis das colunas
+    # Identifica colunas flexíveis (ex: "Placa", "PLACA", "placa", etc.)
     col_placa = next((c for c in df.columns if 'placa' in c.lower()), None)
     col_ait = next((c for c in df.columns if 'ait' in c.lower()), None)
 
