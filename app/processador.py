@@ -27,7 +27,7 @@ async def consultar_e_extrair_cpf(placa, ait):
                 await page.get_by_role("button", name="").click()
             download = await download_info.value
             nome_pdf = f"{placa}_{ait}.pdf"
-            caminho_pdf = os.path.join("static", nome_pdf)
+            caminho_pdf = os.path.join("app", "static", nome_pdf)
             await download.save_as(caminho_pdf)
             cpf = extrair_cpf_pdf(caminho_pdf)
             return cpf
@@ -88,7 +88,7 @@ async def processar_planilha(caminho_planilha):
 
     df_resultado = pd.DataFrame(resultados)
     nome_saida = "resultado.xlsx"
-    caminho_saida = os.path.join("static", nome_saida)
+    caminho_saida = os.path.join("app", "static", nome_saida)
     df_resultado.to_excel(caminho_saida, index=False)
 
     return nome_saida
