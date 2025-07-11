@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Upload de Planilha</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-800 flex items-center justify-center min-h-screen">
+  <div class="bg-white shadow-lg rounded-lg p-8 max-w-md w-full">
+    <h1 class="text-2xl font-bold mb-4">Enviar planilha Excel</h1>
+    <form id="uploadForm">
+      <input type="file" name="file" class="mb-4 block w-full" required>
+      <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Enviar</button>
+    </form>
+    <p id="status" class="mt-4 text-sm text-green-600"></p>
+  </div>
+
+  <script>
+    const form = document.getElementById('uploadForm');
+    const status = document.getElementById('status');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(form);
+
+      const response = await fetch('/upload/', {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await response.json();
+      if (data.download) {
+        status.innerHTML = `✅ Arquivo processado! <a class="text-blue-600 underline" href="${data.download}" target="_blank">Baixar resultado</a>`;
+      } else {
+        status.textContent = 'Erro ao processar a planilha.';
+      }
+    });
+  </script>
+</body>
+</html>
