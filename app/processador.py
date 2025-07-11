@@ -1,4 +1,3 @@
-# app/processador.py
 import pandas as pd
 import asyncio
 import os
@@ -8,35 +7,35 @@ from playwright.async_api import async_playwright
 from app.utils import formatar_cpf
 
 async def consultar_e_extrair_cpf(placa, ait):
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
-        context = await browser.new_context(accept_downloads=True)
-        page = await context.new_page()
+    try:
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(headless=True)
+            context = await browser.new_context(accept_downloads=True)
+            page = await context.new_page()
 
-        await page.goto("https://portal.der.mg.gov.br/obras-multas-frontend/#/consulta-autos")
-        await page.wait_for_timeout(2000)
+            await page.goto("https://portal.der.mg.gov.br/obras-multas-frontend/#/consulta-autos")
+            await page.wait_for_timeout(2000)
 
-        await page.locator('input[name="placa"]').fill(placa)
-        await page.locator('input[name="nrAuto"]').fill(ait)
-        await page.get_by_role("button", name="Consultar").click()
-        await page.wait_for_timeout(5000)
+            await page.locator('input[name="placa"]').fill(placa)
+            await page.locator('input[name="nrAuto"]').fill(ait)
+            await page.get_by_role("button", name="Consultar").click()
+            await page.wait_for_timeout(5000)
 
-        try:
             async with page.expect_download(timeout=20000) as download_info:
                 botao_download = page.locator("button:has-text('Visualizar')")
                 await botao_download.first.click()
 
-    download = await download_info.value
-    nome_pdf = f"{placa}_{ait}.pdf"
-    caminho_pdf = os.path.join("app", "static", nome_pdf)
-    await download.save_as(caminho_pdf)
+            download = await download_info.value
+            nome_pdf = f"{placa}_{ait}.pdf"
+            caminho_pdf = os.path.join("app", "static", nome_pdf)
+            await download.save_as(caminho_pdf)
 
-    cpf = extrair_cpf_pdf(caminho_pdf)
-    return cpf
+            cpf = extrair_cpf_pdf(caminho_pdf)
+            return cpf
 
-except Exception as e:
-    print(f"⚠️ Erro ao baixar PDF para {placa}/{ait}: {e}")
-    return "PDF não encontrado"
+    except Exception as e:
+        print(f"⚠️ Erro ao baixar PDF para {placa}/{ait}: {e}")
+        return "PDF não encontrado"
 
 def extrair_cpf_pdf(caminho):
     try:
