@@ -75,6 +75,7 @@ async def processar_planilha(caminho_planilha):
 
     df_resultado = pd.DataFrame(resultados)
     nome_saida = "resultado.xlsx"
+    os.makedirs(os.path.join("app", "static"), exist_ok=True)
     caminho_saida = os.path.join("app", "static", nome_saida)
     df_resultado.to_excel(caminho_saida, index=False)
 
