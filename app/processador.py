@@ -23,8 +23,8 @@ async def consultar_e_extrair_cpf(placa, ait):
         await page.wait_for_timeout(5000)
 
         try:
-            with page.expect_download(timeout=10000) as download_info:
-                await page.get_by_role("button", name="").click()
+            async with page.expect_download(timeout=20000) as download_info:
+            await page.get_by_role("button", name="").click()
             download = await download_info.value
             nome_pdf = f"{placa}_{ait}.pdf"
             caminho_pdf = os.path.join("app", "static", nome_pdf)
