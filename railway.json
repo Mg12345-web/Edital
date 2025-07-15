@@ -3,7 +3,7 @@
     "env": {}
   },
   "deploy": {
-    "startCommand": "./start.sh"
+    "startCommand": "bash start.sh"
   },
   "plugins": [],
   "services": [],
