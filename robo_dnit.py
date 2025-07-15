@@ -10,10 +10,13 @@ DATA_HOJE = datetime.now().strftime("%d/%m/%Y")
 def verificar_editais_dnit():
     print("🔍 Iniciando verificação de editais do DNIT...")
     try:
-        response = requests.get(URL, timeout=60)
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        }
+        response = requests.get(URL, headers=headers, timeout=60)
         response.raise_for_status()
-        soup = BeautifulSoup(response.text, "html.parser")
 
+        soup = BeautifulSoup(response.text, "html.parser")
         linhas = soup.select("tbody tr")
         achou_edital = False
 
