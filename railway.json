@@ -3,7 +3,7 @@
     "env": {}
   },
   "deploy": {
-    "startCommand": "python robo_dnit.py"
+    "startCommand": "./start.sh"
   },
   "plugins": [],
   "services": [],
