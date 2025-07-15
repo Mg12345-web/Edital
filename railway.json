@@ -10,7 +10,7 @@
   "triggers": [
     {
       "name": "Rodar robo DNIT a cada hora",
-      "schedule": "0 * * * *",  // cron: a cada hora
+      "schedule": "0 * * * *",
       "command": "python robo_dnit.py"
     }
   ]
