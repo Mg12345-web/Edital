@@ -1,0 +1,17 @@
+{
+  "build": {
+    "env": {}
+  },
+  "deploy": {
+    "startCommand": "python robo_dnit.py"
+  },
+  "plugins": [],
+  "services": [],
+  "triggers": [
+    {
+      "name": "Rodar robo DNIT a cada hora",
+      "schedule": "0 * * * *",  // cron: a cada hora
+      "command": "python robo_dnit.py"
+    }
+  ]
+}
