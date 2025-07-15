@@ -1,9 +1,2 @@
-fastapi
-uvicorn
-pandas
-openpyxl
-playwright
-pymupdf
-aiofiles
-python-multipart
-jinja2
+playwright==1.43.0
+requests
