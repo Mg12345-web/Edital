@@ -11,7 +11,8 @@ async def verificar_editais_dnit():
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
         page = await browser.new_page()
-        await page.goto(URL)
+        await page.goto(URL, timeout=60000)
+        await page.wait_for_selector("tbody tr", timeout=60000)
 
         await page.wait_for_selector("tbody tr")
 
